@@ -234,7 +234,7 @@ export const App: React.FC = () => {
             }}
           >
             <Grid container spacing={3} alignItems="center">
-              <Grid item xs={12} md={8}>
+              <Grid size={{ xs: 12, md: 8 }}>
                 <Typography variant="h4" gutterBottom sx={{ color: 'primary.main' }}>
                   {profile ? `Добро пожаловать, ${profile.email}!` : 'Добро пожаловать в ЧГК Тренажёр'}
                 </Typography>
@@ -259,7 +259,7 @@ export const App: React.FC = () => {
                 </Box>
               </Grid>
 
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.secondary' }}>
                     СТАТУС ИНФРАСТРУКТУРЫ (AWS DEV)

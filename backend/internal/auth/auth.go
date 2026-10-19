@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/lestrrat-go/httprc/v3"
+	"github.com/lestrrat-go/jwx/v3/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwt"
 )
 
 type Principal struct {
@@ -31,43 +31,45 @@ func PrincipalFromContext(ctx context.Context) (*Principal, bool) {
 }
 
 type TokenValidator struct {
-	issuer        string
-	clientID      string
-	jwksSet       *jwk.Cache
-	jwksURL       string
-	devBypass     bool
+	issuer    string
+	clientID  string
+	keySet    jwk.Set
+	devBypass bool
 }
 
 func NewTokenValidator(ctx context.Context, issuer, clientID, jwksURL string, devBypass bool) (*TokenValidator, error) {
-	c := jwk.NewCache(ctx)
-	if err := c.Register(jwksURL, jwk.WithMinRefreshInterval(15*time.Minute)); err != nil {
+	c, err := jwk.NewCache(ctx, httprc.NewClient())
+	if err != nil {
+		return nil, fmt.Errorf("create jwk cache: %w", err)
+	}
+
+	if err := c.Register(ctx, jwksURL); err != nil {
 		return nil, fmt.Errorf("register jwks cache: %w", err)
 	}
 
 	// Делаем первый предзапрос к JWKS
 	if _, err := c.Refresh(ctx, jwksURL); err != nil {
-		// При локальном старте без сети не валимся, но логируем
+		// При локальном старте без сети не валимся
 		_ = err
+	}
+
+	cachedSet, err := c.CachedSet(jwksURL)
+	if err != nil {
+		return nil, fmt.Errorf("get cached jwks set: %w", err)
 	}
 
 	return &TokenValidator{
 		issuer:    issuer,
 		clientID:  clientID,
-		jwksSet:   c,
-		jwksURL:   jwksURL,
+		keySet:    cachedSet,
 		devBypass: devBypass,
 	}, nil
 }
 
-func (v *TokenValidator) ValidateTokenString(ctx context.Context, tokenString string) (*Principal, error) {
-	keySet, err := v.jwksSet.Get(ctx, v.jwksURL)
-	if err != nil {
-		return nil, fmt.Errorf("get jwks: %w", err)
-	}
-
+func (v *TokenValidator) ValidateTokenString(_ context.Context, tokenString string) (*Principal, error) {
 	token, err := jwt.Parse(
 		[]byte(tokenString),
-		jwt.WithKeySet(keySet),
+		jwt.WithKeySet(v.keySet),
 		jwt.WithValidate(true),
 		jwt.WithIssuer(v.issuer),
 	)
@@ -75,36 +77,22 @@ func (v *TokenValidator) ValidateTokenString(ctx context.Context, tokenString st
 		return nil, fmt.Errorf("verify jwt: %w", err)
 	}
 
-	sub := token.Subject()
-	if sub == "" {
+	sub, ok := token.Subject()
+	if !ok || sub == "" {
 		return nil, fmt.Errorf("missing sub in token")
 	}
 
 	// Email может быть в custom claims или стандарте (в ID token)
-	email := ""
-	if rawEmail, ok := token.Get("email"); ok {
-		if s, ok := rawEmail.(string); ok {
-			email = s
-		}
-	}
-	if email == "" {
-		if rawUsername, ok := token.Get("username"); ok {
-			if s, ok := rawUsername.(string); ok {
-				email = s
-			}
-		}
+	var email string
+	if err := token.Get("email", &email); err != nil || email == "" {
+		_ = token.Get("username", &email)
 	}
 
 	// Роли (Cognito Groups)
-	roles := []string{}
-	if rawGroups, ok := token.Get("cognito:groups"); ok {
-		if groupList, ok := rawGroups.([]interface{}); ok {
-			for _, g := range groupList {
-				if s, ok := g.(string); ok {
-					roles = append(roles, s)
-				}
-			}
-		}
+	var roles []string
+	_ = token.Get("cognito:groups", &roles)
+	if roles == nil {
+		roles = []string{}
 	}
 
 	return &Principal{
@@ -145,7 +133,7 @@ func (v *TokenValidator) Middleware() func(http.Handler) http.Handler {
 			principal, err := v.ValidateTokenString(r.Context(), parts[1])
 			if err != nil {
 				// Не прерываем сразу здесь, чтобы публичные эндпоинты могли работать,
-				// но если маршрут требует авторизацию, handler вернет 401.
+				// но если маршрут требует авторизацию, RequireAuth вернет 401.
 				next.ServeHTTP(w, r)
 				return
 			}
