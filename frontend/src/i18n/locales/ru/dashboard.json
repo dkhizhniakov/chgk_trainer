@@ -1,0 +1,31 @@
+{
+  "hero": {
+    "welcomeUser": "Добро пожаловать, {{email}}!",
+    "welcomeGuest": "Добро пожаловать в ЧГК Тренажёр",
+    "description": "Интеллектуальная система тренировок: вопросы турниров, единая база знаний и алгоритм интервального повторения FSRS. Всё подключено к реальной базе Amazon DynamoDB и работает локально.",
+    "blitzBtn": "Блиц (60 секунд)",
+    "questionsBtn": "База вопросов",
+    "knowledgeBtn": "База знаний",
+    "fsrsBtn": "Повторение FSRS"
+  },
+  "infra": {
+    "title": "СТАТУС ИНФРАСТРУКТУРЫ (AWS DEV)",
+    "dynamodb": "БД DynamoDB:",
+    "cognito": "Cognito User Pool:",
+    "cognitoActive": "Активен",
+    "backend": "Go API Backend:",
+    "waiting": "Ожидание...",
+    "playerProfile": "Профиль игрока:",
+    "profileLoaded": "Загружен из DynamoDB",
+    "guest": "Не авторизован"
+  },
+  "table": {
+    "title": "Обзор базы вопросов (Material React Table)",
+    "subtitle": "Полнофункциональная таблица с сортировкой, фильтрацией и адаптивным дизайном",
+    "colNumber": "№",
+    "colTour": "Тур / Пакет",
+    "colQuestion": "Вопрос",
+    "colAnswer": "Ответ",
+    "colDifficulty": "Сложность"
+  }
+}

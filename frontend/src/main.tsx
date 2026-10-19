@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import './auth/amplify'
+import './i18n'
 import { AuthProvider } from './auth/AuthProvider'
 import { App } from './App'
 

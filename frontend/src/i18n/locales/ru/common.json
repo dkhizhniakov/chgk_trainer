@@ -1,0 +1,29 @@
+{
+  "brand": {
+    "title": "ЧГК ТРЕНАЖЁР",
+    "subtitle": "Клуб интеллектуальных тренировок"
+  },
+  "nav": {
+    "login": "Войти в клуб",
+    "logout": "Выйти",
+    "switchTheme": "Переключить тему",
+    "language": "Язык"
+  },
+  "status": {
+    "apiOnline": "Go API Online",
+    "connecting": "Подключение...",
+    "apiHealthy": "API онлайн ({{env}})",
+    "checking": "Проверка соединения..."
+  },
+  "roles": {
+    "admin": "Администратор",
+    "editor": "Редактор",
+    "player": "Игрок"
+  },
+  "actions": {
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "continue": "Продолжить"
+  }
+}

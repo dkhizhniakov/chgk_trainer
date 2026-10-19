@@ -1,0 +1,29 @@
+{
+  "brand": {
+    "title": "ChGK TRAINER",
+    "subtitle": "Intellectual Training Club"
+  },
+  "nav": {
+    "login": "Sign In",
+    "logout": "Sign Out",
+    "switchTheme": "Toggle Theme",
+    "language": "Language"
+  },
+  "status": {
+    "apiOnline": "Go API Online",
+    "connecting": "Connecting...",
+    "apiHealthy": "API Online ({{env}})",
+    "checking": "Checking connection..."
+  },
+  "roles": {
+    "admin": "Administrator",
+    "editor": "Editor",
+    "player": "Player"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "continue": "Continue"
+  }
+}

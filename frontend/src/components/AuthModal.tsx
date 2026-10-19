@@ -13,11 +13,13 @@ import {
   IconButton,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
+import { useTranslation, Trans } from 'react-i18next'
 import { useStore } from '@tanstack/react-store'
 import { uiStore, setAuthModal } from '../stores/uiStore'
 import { useAuth } from '../auth/useAuth'
 
 export const AuthModal: React.FC = () => {
+  const { t } = useTranslation(['auth', 'common'])
   const { authModal, pendingEmail } = useStore(uiStore, (s) => s)
   const { signIn, signUp, confirmSignUp } = useAuth()
 
@@ -42,10 +44,10 @@ export const AuthModal: React.FC = () => {
       await signIn(email, password)
       handleClose()
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Ошибка при входе'
+      const msg = err instanceof Error ? err.message : t('auth:messages.loginError')
       if (msg.includes('UserNotConfirmedException')) {
         setAuthModal('confirm', email)
-        setError('Пользователь не подтверждён. Введите код из email.')
+        setError(t('auth:messages.confirmRequired'))
       } else {
         setError(msg)
       }
@@ -60,10 +62,10 @@ export const AuthModal: React.FC = () => {
     setLoading(true)
     try {
       await signUp(email, password)
-      setSuccessMsg('Код подтверждения отправлен на почту!')
+      setSuccessMsg(t('auth:messages.codeSentSuccess'))
       setAuthModal('confirm', email)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Ошибка при регистрации')
+      setError(err instanceof Error ? err.message : t('auth:messages.registerError'))
     } finally {
       setLoading(false)
     }
@@ -75,10 +77,10 @@ export const AuthModal: React.FC = () => {
     setLoading(true)
     try {
       await confirmSignUp(email || pendingEmail, code)
-      setSuccessMsg('Аккаунт подтверждён! Теперь выполните вход.')
+      setSuccessMsg(t('auth:messages.confirmedSuccess'))
       setAuthModal('login', email || pendingEmail)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Неверный код подтверждения')
+      setError(err instanceof Error ? err.message : t('auth:messages.invalidCode'))
     } finally {
       setLoading(false)
     }
@@ -90,9 +92,9 @@ export const AuthModal: React.FC = () => {
     <Dialog open onClose={handleClose} maxWidth="xs" fullWidth PaperProps={{ sx: { p: 1 } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" component="span" sx={{ fontFamily: "'Cinzel', serif", fontWeight: 700 }}>
-          {authModal === 'login' && 'Вход в клуб ЧГК'}
-          {authModal === 'register' && 'Регистрация игрока'}
-          {authModal === 'confirm' && 'Подтверждение Email'}
+          {authModal === 'login' && t('auth:titles.login')}
+          {authModal === 'register' && t('auth:titles.register')}
+          {authModal === 'confirm' && t('auth:titles.confirm')}
         </Typography>
         <IconButton size="small" onClick={handleClose}>
           <CloseIcon fontSize="small" />
@@ -114,7 +116,7 @@ export const AuthModal: React.FC = () => {
         {authModal === 'login' && (
           <Box component="form" onSubmit={handleLogin} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
-              label="Email"
+              label={t('auth:fields.email')}
               type="email"
               size="small"
               fullWidth
@@ -124,7 +126,7 @@ export const AuthModal: React.FC = () => {
               autoFocus
             />
             <TextField
-              label="Пароль"
+              label={t('auth:fields.password')}
               type="password"
               size="small"
               fullWidth
@@ -140,13 +142,13 @@ export const AuthModal: React.FC = () => {
               fullWidth
               sx={{ mt: 1 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Войти'}
+              {loading ? <CircularProgress size={24} /> : t('auth:buttons.login')}
             </Button>
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                Ещё нет аккаунта?{' '}
+                {t('auth:prompts.noAccount')}{' '}
                 <Button variant="text" size="small" onClick={() => setAuthModal('register', email)}>
-                  Зарегистрироваться
+                  {t('auth:buttons.register')}
                 </Button>
               </Typography>
             </Box>
@@ -156,7 +158,7 @@ export const AuthModal: React.FC = () => {
         {authModal === 'register' && (
           <Box component="form" onSubmit={handleRegister} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
-              label="Email"
+              label={t('auth:fields.email')}
               type="email"
               size="small"
               fullWidth
@@ -166,12 +168,12 @@ export const AuthModal: React.FC = () => {
               autoFocus
             />
             <TextField
-              label="Пароль"
+              label={t('auth:fields.password')}
               type="password"
               size="small"
               fullWidth
               required
-              helperText="Мин. 8 символов, строчные буквы и цифры"
+              helperText={t('auth:fields.passwordHelper')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -183,13 +185,13 @@ export const AuthModal: React.FC = () => {
               fullWidth
               sx={{ mt: 1 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Зарегистрироваться'}
+              {loading ? <CircularProgress size={24} /> : t('auth:buttons.register')}
             </Button>
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
               <Typography variant="body2" color="text.secondary">
-                Уже есть аккаунт?{' '}
+                {t('auth:prompts.haveAccount')}{' '}
                 <Button variant="text" size="small" onClick={() => setAuthModal('login', email)}>
-                  Войти
+                  {t('auth:buttons.login')}
                 </Button>
               </Typography>
             </Box>
@@ -199,10 +201,14 @@ export const AuthModal: React.FC = () => {
         {authModal === 'confirm' && (
           <Box component="form" onSubmit={handleConfirm} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Мы отправили проверочный код на <b>{email || pendingEmail}</b>. Введите его ниже:
+              <Trans
+                i18nKey="auth:prompts.codeSent"
+                values={{ email: email || pendingEmail }}
+                components={{ b: <b /> }}
+              />
             </Typography>
             <TextField
-              label="Код подтверждения"
+              label={t('auth:fields.code')}
               size="small"
               fullWidth
               required
@@ -218,7 +224,7 @@ export const AuthModal: React.FC = () => {
               fullWidth
               sx={{ mt: 1 }}
             >
-              {loading ? <CircularProgress size={24} /> : 'Подтвердить аккаунт'}
+              {loading ? <CircularProgress size={24} /> : t('auth:buttons.confirm')}
             </Button>
           </Box>
         )}

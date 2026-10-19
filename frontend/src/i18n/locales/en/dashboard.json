@@ -1,0 +1,31 @@
+{
+  "hero": {
+    "welcomeUser": "Welcome, {{email}}!",
+    "welcomeGuest": "Welcome to ChGK Trainer",
+    "description": "Intellectual training system: tournament questions, unified knowledge base, and FSRS spaced repetition. Connected to live Amazon DynamoDB and fully functional locally.",
+    "blitzBtn": "Blitz (60 seconds)",
+    "questionsBtn": "Questions Database",
+    "knowledgeBtn": "Knowledge Base",
+    "fsrsBtn": "FSRS Repetition"
+  },
+  "infra": {
+    "title": "INFRASTRUCTURE STATUS (AWS DEV)",
+    "dynamodb": "DynamoDB Table:",
+    "cognito": "Cognito User Pool:",
+    "cognitoActive": "Active",
+    "backend": "Go API Backend:",
+    "waiting": "Waiting...",
+    "playerProfile": "Player Profile:",
+    "profileLoaded": "Loaded from DynamoDB",
+    "guest": "Not authenticated"
+  },
+  "table": {
+    "title": "Questions Database Preview (Material React Table)",
+    "subtitle": "Feature-rich table with sorting, filtering, and responsive design",
+    "colNumber": "No.",
+    "colTour": "Tour / Package",
+    "colQuestion": "Question",
+    "colAnswer": "Answer",
+    "colDifficulty": "Difficulty"
+  }
+}

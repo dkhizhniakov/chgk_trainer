@@ -28,12 +28,15 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import LoginIcon from '@mui/icons-material/Login'
 import { useQuery } from '@tanstack/react-query'
 import { useStore } from '@tanstack/react-store'
+import { useTranslation } from 'react-i18next'
 import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table'
 
 import { getAppTheme } from './theme/theme'
 import { uiStore, toggleThemeMode, setAuthModal } from './stores/uiStore'
 import { useAuth } from './auth/useAuth'
 import { AuthModal } from './components/AuthModal'
+import { LanguageSelector } from './components/LanguageSelector'
+import { getMrtLocalization } from './i18n'
 import { api } from './api/client'
 
 interface DemoQuestion {
@@ -69,6 +72,7 @@ const demoData: DemoQuestion[] = [
 ]
 
 export const App: React.FC = () => {
+  const { t, i18n } = useTranslation(['common', 'dashboard'])
   const themeMode = useStore(uiStore, (s) => s.themeMode)
   const theme = React.useMemo(() => getAppTheme(themeMode), [themeMode])
 
@@ -84,22 +88,22 @@ export const App: React.FC = () => {
     () => [
       {
         accessorKey: 'id',
-        header: '№',
+        header: t('dashboard:table.colNumber'),
         size: 70,
       },
       {
         accessorKey: 'tour',
-        header: 'Тур / Пакет',
+        header: t('dashboard:table.colTour'),
         size: 150,
       },
       {
         accessorKey: 'text',
-        header: 'Вопрос',
+        header: t('dashboard:table.colQuestion'),
         size: 350,
       },
       {
         accessorKey: 'answer',
-        header: 'Ответ',
+        header: t('dashboard:table.colAnswer'),
         size: 150,
         Cell: ({ cell }) => (
           <Typography variant="body2" sx={{ fontWeight: 600, color: 'primary.main' }}>
@@ -109,7 +113,7 @@ export const App: React.FC = () => {
       },
       {
         accessorKey: 'difficulty',
-        header: 'Сложность',
+        header: t('dashboard:table.colDifficulty'),
         size: 100,
         Cell: ({ cell }) => (
           <Chip
@@ -121,7 +125,7 @@ export const App: React.FC = () => {
         ),
       },
     ],
-    []
+    [t]
   )
 
   return (
@@ -153,29 +157,43 @@ export const App: React.FC = () => {
                       lineHeight: 1.2,
                     }}
                   >
-                    ЧГК ТРЕНАЖЁР
+                    {t('common:brand.title')}
                   </Typography>
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                    Клуб интеллектуальных тренировок
+                    {t('common:brand.subtitle')}
                   </Typography>
                 </Box>
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 {/* Индикатор здоровья бэкенда */}
-                <Tooltip title={isHealthOk ? `API онлайн (${health?.env})` : 'Проверка соединения...'}>
+                <Tooltip
+                  title={
+                    isHealthOk
+                      ? t('common:status.apiHealthy', { env: health?.env })
+                      : t('common:status.checking')
+                  }
+                >
                   <Chip
                     icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-                    label={isHealthOk ? 'Go API Online' : 'Подключение...'}
+                    label={isHealthOk ? t('common:status.apiOnline') : t('common:status.connecting')}
                     size="small"
                     color={isHealthOk ? 'success' : 'default'}
                     variant="outlined"
-                    sx={{ mr: 1 }}
+                    sx={{ mr: 0.5 }}
                   />
                 </Tooltip>
 
+                {/* Селектор языка */}
+                <LanguageSelector />
+
                 {/* Переключатель темы */}
-                <IconButton onClick={toggleThemeMode} color="inherit" size="small">
+                <IconButton
+                  onClick={toggleThemeMode}
+                  color="inherit"
+                  size="small"
+                  aria-label={t('common:nav.switchTheme')}
+                >
                   {themeMode === 'dark' ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
                 </IconButton>
 
@@ -188,7 +206,13 @@ export const App: React.FC = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
                         {profile?.roles?.map((r) => (
-                          <Chip key={r} label={r} size="small" color="primary" sx={{ height: 18, fontSize: 10 }} />
+                          <Chip
+                            key={r}
+                            label={t(`common:roles.${r}`, { defaultValue: r })}
+                            size="small"
+                            color="primary"
+                            sx={{ height: 18, fontSize: 10 }}
+                          />
                         ))}
                       </Box>
                     </Box>
@@ -199,7 +223,7 @@ export const App: React.FC = () => {
                       startIcon={<LogoutIcon />}
                       onClick={signOut}
                     >
-                      Выйти
+                      {t('common:nav.logout')}
                     </Button>
                   </Box>
                 ) : (
@@ -210,7 +234,7 @@ export const App: React.FC = () => {
                     startIcon={<LoginIcon />}
                     onClick={() => setAuthModal('login')}
                   >
-                    Войти в клуб
+                    {t('common:nav.login')}
                   </Button>
                 )}
               </Box>
@@ -236,25 +260,25 @@ export const App: React.FC = () => {
             <Grid container spacing={3} alignItems="center">
               <Grid size={{ xs: 12, md: 8 }}>
                 <Typography variant="h4" gutterBottom sx={{ color: 'primary.main' }}>
-                  {profile ? `Добро пожаловать, ${profile.email}!` : 'Добро пожаловать в ЧГК Тренажёр'}
+                  {profile
+                    ? t('dashboard:hero.welcomeUser', { email: profile.email })
+                    : t('dashboard:hero.welcomeGuest')}
                 </Typography>
                 <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 700, mb: 2 }}>
-                  Интеллектуальная система тренировок: вопросы турниров, единая база знаний и
-                  алгоритм интервального повторения FSRS. Всё подключено к реальной базе Amazon DynamoDB и
-                  работает локально.
+                  {t('dashboard:hero.description')}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                   <Button variant="contained" color="primary" startIcon={<SportsEsportsIcon />}>
-                    Блиц (60 секунд)
+                    {t('dashboard:hero.blitzBtn')}
                   </Button>
                   <Button variant="outlined" color="primary" startIcon={<StorageIcon />}>
-                    База вопросов
+                    {t('dashboard:hero.questionsBtn')}
                   </Button>
                   <Button variant="outlined" color="secondary" startIcon={<AutoStoriesIcon />}>
-                    База знаний
+                    {t('dashboard:hero.knowledgeBtn')}
                   </Button>
                   <Button variant="outlined" color="inherit" startIcon={<SchoolIcon />}>
-                    Повторение FSRS
+                    {t('dashboard:hero.fsrsBtn')}
                   </Button>
                 </Box>
               </Grid>
@@ -262,34 +286,34 @@ export const App: React.FC = () => {
               <Grid size={{ xs: 12, md: 4 }}>
                 <Card variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.secondary' }}>
-                    СТАТУС ИНФРАСТРУКТУРЫ (AWS DEV)
+                    {t('dashboard:infra.title')}
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2">БД DynamoDB:</Typography>
+                      <Typography variant="body2">{t('dashboard:infra.dynamodb')}</Typography>
                       <Chip label="chgk-dev-*" size="small" color="success" variant="outlined" />
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2">Cognito User Pool:</Typography>
-                      <Chip label="Активен" size="small" color="success" variant="outlined" />
+                      <Typography variant="body2">{t('dashboard:infra.cognito')}</Typography>
+                      <Chip label={t('dashboard:infra.cognitoActive')} size="small" color="success" variant="outlined" />
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2">Go API Backend:</Typography>
+                      <Typography variant="body2">{t('dashboard:infra.backend')}</Typography>
                       <Chip
-                        label={isHealthOk ? ':8080 OK' : 'Ожидание...'}
+                        label={isHealthOk ? ':8080 OK' : t('dashboard:infra.waiting')}
                         size="small"
                         color={isHealthOk ? 'success' : 'warning'}
                         variant="outlined"
                       />
                     </Box>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2">Профиль игрока:</Typography>
+                      <Typography variant="body2">{t('dashboard:infra.playerProfile')}</Typography>
                       {isProfileLoading ? (
                         <CircularProgress size={16} />
                       ) : profile ? (
-                        <Chip label="Загружен из DynamoDB" size="small" color="primary" />
+                        <Chip label={t('dashboard:infra.profileLoaded')} size="small" color="primary" />
                       ) : (
-                        <Chip label="Не авторизован" size="small" variant="outlined" />
+                        <Chip label={t('dashboard:infra.guest')} size="small" variant="outlined" />
                       )}
                     </Box>
                   </Box>
@@ -301,16 +325,17 @@ export const App: React.FC = () => {
           {/* Демонстрация таблицы material-react-table */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="h5" sx={{ mb: 1.5, fontFamily: "'Cinzel', serif" }}>
-              Обзор базы вопросов (Material React Table)
+              {t('dashboard:table.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Полнофункциональная таблица с сортировкой, фильтрацией и адаптивным дизайном
+              {t('dashboard:table.subtitle')}
             </Typography>
             <Card>
               <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
                 <MaterialReactTable
                   columns={columns}
                   data={demoData}
+                  localization={getMrtLocalization(i18n.language)}
                   enableColumnFilters
                   enableGlobalFilter
                   enablePagination
